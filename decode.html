@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://rawgit.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            background-image: url('https://source.unsplash.com/1600x900/?technology,dark');
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .glassmorphism-container {
+            display: flex;
+            max-width: 800px;
+            width: 70%;
+            margin-top: 10em;
+            margin-bottom: 10oem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .form-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .user-details {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-details {
+            margin-right: 20px;
+        }
+
+        .profile-pic-container {
+            width: 100px;
+            height: 100px;
+            overflow: hidden;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-pic {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .upload-block {
+            margin-top: 10px;
+        }
+
+        .upload-input {
+            display: none;
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .inputs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .label-input {
+            display: flex;
+            align-items: center;
+        }
+
+        .labels {
+            margin-right: 8px;
+            color: #fff;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            margin-right: 8px;
+            color: #fff;
+        }
+
+        input {
+            width: calc(50% - 5px);
+            padding: 10px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .input-margin {
+            width: 17em;
+        }
+
+        .chart-container {
+            flex: 1;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: margin-right 0.3s;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .export-buttons button {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .switch-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            margin-top: 2em;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <title>Personalidade Biológica</title>
+</head>
+
+<body>
+
+    <div class="glassmorphism-container">
+        <div class="form-container">
+            <h1>Personalidade Biológica</h1>
+
+            <div class="user-details">
+                <div class="profile-details">
+                    <div class="profile-pic-container" onclick="chooseProfilePicture()">
+                        <img class="profile-pic" id="profilePic"
+                            src="https://img.freepik.com/premium-vector/user-profile-icon-flat-style-member-avatar-vector-illustration-isolated-background-human-permission-sign-business-concept_157943-15752.jpg"
+                            alt="Alterar foto">
+                        <div id="changePictureOverlay">Escolher</div>
+                    </div>
+
+                    <div class="upload-block">
+                        <input class="upload-input" type="file" id="fileInput" accept="image/*"
+                            onchange="previewImage()">
+                    </div>
+                </div>
+
+                <div class="margin">
+                    <label for="nome">Nome:</label>
+                    <input class="input-margin" type="text" id="nome" oninput="gerarGraficos()" required>
+                </div>
+            </div>
+
+            <form id="personalidadeForm">
+                <div class="inputs-container">
+                    <div class="label-input">
+                        <label class="labels" for="m">M:</label>
+                        <input type="text" id="m" required oninput="gerarGraficos()">
+                    </div>
+
+                    <div class="label-input">
+                        <label class="labels" for="f">F:</label>
+                        <input type="text" id="f" required oninput="gerarGraficos()">
+                    </div>
+
+                    <div class="label-input">
+                        <label class="labels" for="c">C:</label>
+                        <input type="text" id="c" required oninput="gerarGraficos()">
+                    </div>
+
+                    <div class="label-input">
+                        <label class="labels" for="i">I:</label>
+                        <input type="text" id="i" required oninput="gerarGraficos()">
+                    </div>
+
+                    <div class="label-input">
+                        <label class="labels" for="a">A:</label>
+                        <input type="text" id="a" required oninput="gerarGraficos()">
+                    </div>
+                </div>
+            </form>
+
+            <button class="switch-button" onclick="toggleCharts()">Alternar Gráficos</button>
+            <div class="export-buttons">
+                <button onclick="exportToPDF()">Exportar para PDF</button>
+                <button onclick="exportToExcel()">Exportar para Excel</button>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+            <canvas id="introExtroChart" style="margin-top: 20px;"></canvas>
+            <canvas id="mentalSentimentalChart" style="margin-top: 20px; display: none;"></canvas>
+        </div>
+    </div>
+
+    <script>
+        var nomeInput = document.getElementById('nome');
+        var mInput = document.getElementById('m');
+        var fInput = document.getElementById('f');
+        var cInput = document.getElementById('c');
+        var iInput = document.getElementById('i');
+        var aInput = document.getElementById('a');
+        var profilePic = document.getElementById('profilePic');
+        var changePictureOverlay = document.getElementById('changePictureOverlay');
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var introExtroCtx = document.getElementById('introExtroChart').getContext('2d');
+        var mentalSentimentalCtx = document.getElementById('mentalSentimentalChart').getContext('2d');
+
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['M', 'F', 'C', 'I', 'A'],
+                datasets: [{
+                    label: 'Personalidade Biológica',
+                    data: [],
+                    backgroundColor: ['#3498db', '#e74c3c', '#9b59b6', '#2ecc71', '#f39c12']
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true
+                    }
+                }
+            }
+        });
+
+        var introExtroChart = new Chart(introExtroCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Introversão (I+F+A)', 'Extroversão (M+C)'],
+                datasets: [{
+                    data: [],
+                    backgroundColor: ['#9b59b6', '#2ecc71']
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true
+                    }
+                }
+            }
+        });
+
+        var mentalSentimentalChart = new Chart(mentalSentimentalCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Mental (A+I)', 'Sentimental (M+F+C)'],
+                datasets: [{
+                    data: [],
+                    backgroundColor: ['#3498db', '#e74c3c']
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true
+                    }
+                }
+            }
+        });
+
+        function gerarGraficos() {
+            var nome = nomeInput.value;
+            var m = parseFloat(mInput.value) || 0;
+            var f = parseFloat(fInput.value) || 0;
+            var c = parseFloat(cInput.value) || 0;
+            var i = parseFloat(iInput.value) || 0;
+            var a = parseFloat(aInput.value) || 0;
+
+            var total_mfcia = m + f + c + i + a;
+
+            var prop_m = (m / total_mfcia) * 100;
+            var prop_f = (f / total_mfcia) * 100;
+            var prop_c = (c / total_mfcia) * 100;
+            var prop_i = (i / total_mfcia) * 100;
+            var prop_a = (a / total_mfcia) * 100;
+
+            myChart.data.datasets[0].data = [prop_m, prop_f, prop_c, prop_i, prop_a];
+            introExtroChart.data.datasets[0].data = [prop_i + prop_f + prop_a, prop_m + prop_c];
+            mentalSentimentalChart.data.datasets[0].data = [prop_a + prop_i, prop_m + prop_f + prop_c];
+
+            myChart.options.plugins.title.text = 'Distribuição da Personalidade Biológica de ' + nome;
+            introExtroChart.options.plugins.title.text = 'Taxa de Introversão e Extroversão de ' + nome;
+            mentalSentimentalChart.options.plugins.title.text = 'Taxa Mental e Sentimental de ' + nome;
+
+            myChart.update();
+            introExtroChart.update();
+            mentalSentimentalChart.update();
+        }
+
+        function previewImage() {
+            var input = document.getElementById('fileInput');
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    profilePic.src = e.target.result;
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function clearImage() {
+            profilePic.src = '';
+            document.getElementById('fileInput').value = '';
+        }
+
+        function chooseProfilePicture() {
+            document.getElementById('fileInput').click();
+        }
+
+        function exportToPDF() {
+            var element = document.querySelector('.glassmorphism-container');
+            html2pdf(element);
+        }
+
+        function exportToExcel() {
+            var data = [
+                ['Nome', 'M', 'F', 'C', 'I', 'A'],
+                [nomeInput.value, mInput.value, fInput.value, cInput.value, iInput.value, aInput.value]
+            ];
+
+            var ws = XLSX.utils.aoa_to_sheet(data);
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Personalidade');
+
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var yyyy = today.getFullYear();
+
+            today = dd + '-' + mm + '-' + yyyy;
+
+            var fileName = 'Personalidade_' + today + '.xlsx';
+
+            XLSX.writeFile(wb, fileName);
+        }
+
+        function toggleCharts() {
+            var introExtroChartCanvas = document.getElementById('introExtroChart');
+            var mentalSentimentalChartCanvas = document.getElementById('mentalSentimentalChart');
+
+            if (introExtroChartCanvas.style.display === 'none') {
+                introExtroChartCanvas.style.display = 'block';
+                mentalSentimentalChartCanvas.style.display = 'none';
+            } else {
+                introExtroChartCanvas.style.display = 'none';
+                mentalSentimentalChartCanvas.style.display = 'block';
+            }
+        }
+    </script>
+
+</body>
+
+</html>
